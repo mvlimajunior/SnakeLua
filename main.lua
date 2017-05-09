@@ -96,7 +96,10 @@ end
 
 -- Jogador colidindo com a comida.
 function playerFoodCollision (player, food)
-  return true
+  if ( player.x + default_block_size >= food.x ) and ( player.x <= food.x + default_block_size) and ( player.y + default_block_size >= food.y) and ( player.y <= food.y + default_block_size ) then
+    playerAddBlock()
+    respawnPlayerFood()
+  end
 end
 
 -- Jogador colidindo com ele mesmo.
@@ -114,6 +117,9 @@ function love.update (dt)
     block.y = block.y + player.speed_y * dt
 
   end
+
+  playerFoodCollision(player,food)
+
 end
 
 function drawPlayer()
