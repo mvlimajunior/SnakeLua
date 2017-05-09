@@ -15,14 +15,15 @@ function love.load ()
   -- Inicializa a Cor das Linhas de Demarcação do Cenário.
   love.graphics.setColor(0,0, 0)
 
+  -- Define os limites do cenário na tela.
   scenarioLimits = {10,10,10,screenHeight-10,screenWidth-10,screenHeight-10,screenWidth-10,10,10,10}
 
   -- Iniciliza o Jogador.
   player = {
     x = screenWidth/2,
     y = screenHeight/2,
-    speed_x = player_movement_speed,
-    speed_y = player_no_speed,
+    speed_x = player_no_speed,
+    speed_y = player_movement_speed,
     body_size = 0,
     body = {}
   }
@@ -88,16 +89,31 @@ function love.keypressed (key)
     end
 end
 
---[[
-function collides (o1, o2)
-    return (o1.x+o1.w >= o2.x) and (o1.x <= o2.x+o2.w) and
-           (o1.y+o1.h >= o2.y) and (o1.y <= o2.y+o2.h)
+-- Jogador colidindo com as paredes.
+function playerWallCollision (player, wall)
+  return true
 end
-  --]]
+
+-- Jogador colidindo com a comida.
+function playerFoodCollision (player, food)
+  return true
+end
+
+-- Jogador colidindo com ele mesmo.
+function playerBodyCollision (player)
+  return true
+end
 
 function love.update (dt)
-  --player.x =  player.x + player.speed_x * dt
-  --player.y =  player.y + player.speed_y * dt
+  player.x =  player.x + player.speed_x * dt
+  player.y =  player.y + player.speed_y * dt
+
+  for i,block in ipairs(player.body) do
+
+    block.x = block.x + player.speed_x * dt
+    block.y = block.y + player.speed_y * dt
+
+  end
 end
 
 function drawPlayer()
