@@ -5,6 +5,7 @@ default_block_size = 20
 
 player_movement_speed = 100
 player_no_speed = 0
+player_body_gap = 1
 
 function love.load ()
 
@@ -45,12 +46,12 @@ function playerAddBlock()
   if (player.body_size == 0) then
     new_block = {
       x = player.x,
-      y = player.y + default_block_size
+      y = player.y + default_block_size + player_body_gap
     }
   else
     new_block = {
       x = player.x,
-      y = player.y + ( default_block_size * (player.body_size + 1))
+      y = player.y + ( ( default_block_size + player_body_gap ) * (player.body_size + 1) )
     }
 
   end
