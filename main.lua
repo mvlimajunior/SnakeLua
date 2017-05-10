@@ -20,18 +20,26 @@ function love.load ()
 
   -- Iniciliza o Jogador.
   player = {
-    x = screenWidth/2,
-    y = screenHeight/2,
-    speed_x = player_no_speed,
-    speed_y = player_movement_speed,
-    body_size = 0,
-    body = {}
+    pos = {
+      x = screenWidth/2,
+      y = screenHeight/2,
+    },
+    speed = {
+      x = player_no_speed,
+      y = player_movement_speed,
+    },
+    body = {
+      size = 0,
+      blocks = {}
+    }
   }
 
   food = {
-    x = nil,
-    y = nil,
-    isAlive = true
+    pos = {
+      x = nil,
+      y = nil
+    },
+    isAlive = false
   }
 
   -- Inicializa dois blocos ao Jogador e Inicializa comida no cenário.
@@ -44,59 +52,63 @@ end
 -- Aumenta o comprimento do Jogador.
 function playerAddBlock()
 
-  if (player.body_size == 0) then
+  if (player.body.size == 0) then
     new_block = {
-      x = player.x,
-      y = player.y + default_block_size + player_body_gap
+      x = player.pos.x,
+      y = player.pos.y + default_block_size + player_body_gap
     }
   else
     new_block = {
-      x = player.x,
-      y = player.y + ( ( default_block_size + player_body_gap ) * (player.body_size + 1) )
+      x = player.pos.x,
+      y = player.pos.y + ( ( default_block_size + player_body_gap ) * (player.body.size + 1) )
     }
 
   end
 
-  table.insert(player.body,new_block)
+  table.insert(player.body.blocks,new_block)
 
-  player.body_size = player.body_size + 1
+  player.body.size = player.body.size + 1
 
   print("Criei Corpo no Player! : ")
-  print(player.body_size)
+  print(player.body.size)
 end
 
 function respawnPlayerFood()
 
-  food.x = love.math.random(10, screenWidth - 10)
-  food.y = love.math.random(10, screenHeight - 10)
+  food.pos.x = love.math.random(10, screenWidth - 10)
+  food.pos.y = love.math.random(10, screenHeight - 10)
   food.isAlive = true
 
 end
 
+function gameOver()
+ return true
+end
+
 function love.keypressed (key)
     if key == 'left' then
-        player.speed_x = -player_movement_speed
-        player.speed_y = player_no_speed
+        player.speed.x = -player_movement_speed
+        player.speed.y = player_no_speed
     elseif key == 'right' then
-        player.speed_x = player_movement_speed
-        player.speed_y = player_no_speed
+        player.speed.x = player_movement_speed
+        player.speed.y = player_no_speed
     elseif key == 'up' then
-        player.speed_x = player_no_speed
-        player.speed_y = -player_movement_speed
+        player.speed.x = player_no_speed
+        player.speed.y = -player_movement_speed
     elseif key == 'down' then
-        player.speed_y = player_movement_speed
-        player.speed_x = player_no_speed
+        player.speed.y = player_movement_speed
+        player.speed.x = player_no_speed
     end
 end
 
 -- Jogador colidindo com as paredes.
 function playerWallCollision (player, wall)
-  return true
+
 end
 
 -- Jogador colidindo com a comida.
 function playerFoodCollision (player, food)
-  if ( player.x + default_block_size >= food.x ) and ( player.x <= food.x + default_block_size) and ( player.y + default_block_size >= food.y) and ( player.y <= food.y + default_block_size ) then
+  if ( player.pos.x + default_block_size >= food.pos.x ) and ( player.pos.x <= food.pos.x + default_block_size) and ( player.pos.y + default_block_size >= food.pos.y) and ( player.pos.y <= food.pos.y + default_block_size ) then
     playerAddBlock()
     respawnPlayerFood()
   end
@@ -108,13 +120,13 @@ function playerBodyCollision (player)
 end
 
 function love.update (dt)
-  player.x =  player.x + player.speed_x * dt
-  player.y =  player.y + player.speed_y * dt
+  player.pos.x =  player.pos.x + player.speed.x * dt
+  player.pos.y =  player.pos.y + player.speed.y * dt
 
-  for i,block in ipairs(player.body) do
+  for i,block in ipairs(player.body.blocks) do
 
-    block.x = block.x + player.speed_x * dt
-    block.y = block.y + player.speed_y * dt
+    block.x = block.x + player.speed.x * dt
+    block.y = block.y + player.speed.y * dt
 
   end
 
@@ -127,11 +139,11 @@ function drawPlayer()
   love.graphics.setColor(255, 0, 0, 180)
 
   -- Desenho do Jogador. ( Cabeça )
-  love.graphics.rectangle( "fill", player.x, player.y, default_block_size, default_block_size )
+  love.graphics.rectangle( "fill", player.pos.x, player.pos.y, default_block_size, default_block_size )
 
   love.graphics.setColor(0, 0, 0, 255)
   -- Desenho do Corpo.
- for i,block in ipairs(player.body) do
+ for i,block in ipairs(player.body.blocks) do
    love.graphics.rectangle( "fill", block.x, block.y, default_block_size, default_block_size )
  end
 
@@ -148,7 +160,7 @@ function love.draw()
   -- Desenho da Comida.
   if (food.isAlive) then
     love.graphics.setColor(0,0,255)
-    love.graphics.rectangle( "fill", food.x, food.y, default_block_size, default_block_size )
+    love.graphics.rectangle( "fill", food.pos.x, food.pos.y, default_block_size, default_block_size )
   end
 
 end
