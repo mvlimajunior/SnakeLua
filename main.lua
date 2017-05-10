@@ -15,8 +15,14 @@ function love.load ()
   -- Inicializa a Cor das Linhas de Demarcação do Cenário.
   love.graphics.setColor(0,0, 0)
 
-  -- Define os limites do cenário na tela.
-  scenarioLimits = {10,10,10,screenHeight-10,screenWidth-10,screenHeight-10,screenWidth-10,10,10,10}
+  -- Define os limites do cenário na tela. ( Xi , Yi )
+  scenarioLimits = {
+    10,10,
+    10,screenHeight-10,
+    screenWidth-10,screenHeight-10,
+    screenWidth-10,10,
+    10,10
+  }
 
   -- Iniciliza o Jogador.
   player = {
@@ -26,7 +32,7 @@ function love.load ()
     },
     speed = {
       x = player_no_speed,
-      y = player_movement_speed,
+      y = -player_movement_speed,
     },
     body = {
       size = 0,
@@ -54,13 +60,25 @@ function playerAddBlock()
 
   if (player.body.size == 0) then
     new_block = {
-      x = player.pos.x,
-      y = player.pos.y + default_block_size + player_body_gap
+      pos = {
+        x = player.pos.x,
+        y = player.pos.y + default_block_size + player_body_gap
+      },
+      speed = {
+        x = player.speed.x,
+        y = player.speed.y,
+      }
     }
   else
     new_block = {
-      x = player.pos.x,
-      y = player.pos.y + ( ( default_block_size + player_body_gap ) * (player.body.size + 1) )
+      pos = {
+        x = player.pos.x,
+        y = player.pos.y + ( ( default_block_size + player_body_gap ) * (player.body.size + 1) )
+      },
+      speed = {
+        x = player.speed.x,
+        y = player.speed.y,
+      }
     }
 
   end
@@ -125,9 +143,20 @@ function love.update (dt)
 
   for i,block in ipairs(player.body.blocks) do
 
-    block.x = block.x + player.speed.x * dt
-    block.y = block.y + player.speed.y * dt
+    --[[if (i <= 1) then
+      if (block.pos.x < player.pos.x) then
+        block.speed.y = player.speed.x
+        block.speed.x = player.speed.y
+      end
+    else
+      if (block.pos.x < player.body.blocks[i-1].pos.x) then
+        block.speed.y = player.body.blocks[i-1].speed.x
+        block.speed.x = player.body.blocks[i-1].speed.y
+      end
+    end--]]
 
+    block.pos.x = block.pos.x + block.speed.x * dt
+    block.pos.y = block.pos.y + block.speed.y * dt
   end
 
   playerFoodCollision(player,food)
@@ -144,7 +173,7 @@ function drawPlayer()
   love.graphics.setColor(0, 0, 0, 255)
   -- Desenho do Corpo.
  for i,block in ipairs(player.body.blocks) do
-   love.graphics.rectangle( "fill", block.x, block.y, default_block_size, default_block_size )
+   love.graphics.rectangle( "fill", block.pos.x, block.pos.y, default_block_size, default_block_size )
  end
 
 end
