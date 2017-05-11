@@ -50,45 +50,53 @@ function love.load ()
 
   -- Inicializa dois blocos ao Jogador e Inicializa comida no cenário.
   playerAddBlock()
-  -- playerAddBlock()
   respawnPlayerFood()
 
 end
 
 -- Aumenta o comprimento do Jogador.
-function playerAddBlock()
+function playerAddBlock(n)
 
-  if (player.body.size == 0) then
-    new_block = {
-      pos = {
-        x = player.pos.x,
-        y = player.pos.y + default_block_size + player_body_gap
-      },
-      speed = {
-        x = player.speed.x,
-        y = player.speed.y,
+  if (n == nil or n > 0) then
+
+    if (player.body.size == 0) then
+      new_block = {
+        pos = {
+          x = player.pos.x,
+          y = player.pos.y + default_block_size + player_body_gap
+        },
+        speed = {
+          x = player.speed.x,
+          y = player.speed.y,
+        }
       }
-    }
-  else
-    new_block = {
-      pos = {
-        x = player.pos.x,
-        y = player.pos.y + ( ( default_block_size + player_body_gap ) * (player.body.size + 1) )
-      },
-      speed = {
-        x = player.speed.x,
-        y = player.speed.y,
+    else
+      new_block = {
+        pos = {
+          x = player.pos.x,
+          y = player.pos.y + ( ( default_block_size + player_body_gap ) * (player.body.size + 1) )
+        },
+        speed = {
+          x = player.speed.x,
+          y = player.speed.y,
+        }
       }
-    }
+
+    end
+
+    table.insert(player.body.blocks,1,new_block)
+
+    player.body.size = player.body.size + 1
+
+    print("Criei Corpo no Player! : ")
+    print(player.body.size)
 
   end
 
-  table.insert(player.body.blocks,new_block)
+  if (n ~= nil and n > 0) then
+    playerAddBlock(n-1)
+  end
 
-  player.body.size = player.body.size + 1
-
-  print("Criei Corpo no Player! : ")
-  print(player.body.size)
 end
 
 function respawnPlayerFood()
@@ -139,17 +147,16 @@ end
 
 function love.update (dt)
   prevPos = {
-    x = player.pos.x,
-    y = player.pos.y
+    x = player.pos.y - default_block_size,
+    y = player.pos.x - default_block_size
   }
-  
+
   player.pos.x =  player.pos.x + player.speed.x * dt
   player.pos.y =  player.pos.y + player.speed.y * dt
 
   for i,block in ipairs(player.body.blocks) do
 
-    block.pos.x = prevPos.x + player.speed.x * dt
-    block.pos.y = prevPos.y + player.speed.y * dt
+
   end
 
   playerFoodCollision(player,food)
