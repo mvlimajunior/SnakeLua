@@ -57,7 +57,7 @@ function love.load ()
   playerAddBlock()
   respawnPlayerFood()
 
-  accumulator = { current = 0; limit= 0.25; }
+  accumulator = { current = 0; limit= 0.27; }
 
 end
 
@@ -83,11 +83,12 @@ function playerAddBlock(n)
     direction = {
       x = player.direction.x,
       y = player.direction.y
-    }
+    },
+    isAlive = false
   }
 
   for i=1,n do
-    if (player.body.size == 0) then
+    if (player.body.size >= 0) then
       new_block.pos.current.x = player.pos.current.x + ( default_block_size * player.direction.x ) + player_body_gap
       new_block.pos.current.y = player.pos.current.y + ( default_block_size * player.direction.y ) + player_body_gap
     else
@@ -95,7 +96,7 @@ function playerAddBlock(n)
       new_block.pos.current.y = player.pos.current.y + ( ( default_block_size * player.direction.y) * (player.body.size + 1) ) + player_body_gap
     end
 
-    table.insert(player.body.blocks,1,new_block)
+    table.insert(player.body.blocks,new_block)
 
     player.body.size = player.body.size + 1
 
@@ -170,13 +171,17 @@ end
 
 function love.update (dt)
 
-  accumulator.current = accumulator.current +dt;
+  accumulator.current = accumulator.current + dt
 
-  player.pos.previous.x = player.pos.current.x
-  player.pos.previous.y = player.pos.current.y
+  player.pos.previous.x = player.pos.current.x - ( default_block_size * player.direction.x )
+  player.pos.previous.y = player.pos.current.y - ( default_block_size * player.direction.y )
 
-  player.pos.current.x =  player.pos.current.x + player.direction.x * player_movement_speed * dt
-  player.pos.current.y =  player.pos.current.y + player.direction.y * player_movement_speed * dt
+  player.pos.current.x = player.pos.current.x + ( player.direction.x * player_movement_speed * dt )
+
+  player.pos.current.y = player.pos.current.y + ( player.direction.y * player_movement_speed * dt )
+
+  -- Checa colisão do Jogador.
+  playerBodyCollision(player)
 
   if (accumulator.current >= accumulator.limit) then
 
@@ -188,12 +193,15 @@ function love.update (dt)
       block.pos.previous.y = block.pos.current.y
 
       if (i <= 1) then
-        block.pos.current.x = player.pos.previous.x - ( default_block_size * 2 ) * player.direction.x * dt
-        block.pos.current.y = player.pos.previous.y - ( default_block_size * 2 ) * player.direction.y * dt
+        block.pos.current.x = player.pos.previous.x - player.direction.x * dt
+        block.pos.current.y = player.pos.previous.y - player.direction.y * dt
       else
-        block.pos.current.x = player.body.blocks[i-1].pos.previous.x - ( default_block_size * 2 ) * player.direction.x * dt
-        block.pos.current.y = player.body.blocks[i-1].pos.previous.y - ( default_block_size *2 ) * player.direction.y * dt
+        block.pos.current.x = player.body.blocks[i-1].pos.previous.x - player.direction.x * dt
+        block.pos.current.y = player.body.blocks[i-1].pos.previous.y - player.direction.y * dt
       end
+
+      block.isAlive = true
+
     end
   end
 
@@ -211,7 +219,9 @@ function drawPlayer()
   love.graphics.setColor(0, 0, 0, 255)
   -- Desenho do Corpo.
  for i,block in ipairs(player.body.blocks) do
-   love.graphics.rectangle( "fill", block.pos.current.x, block.pos.current.y, default_block_size, default_block_size )
+   if (block.isAlive) then
+     love.graphics.rectangle( "fill", block.pos.current.x, block.pos.current.y, default_block_size, default_block_size )
+   end
  end
 
 end
