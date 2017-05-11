@@ -50,7 +50,7 @@ function love.load ()
 
   -- Inicializa dois blocos ao Jogador e Inicializa comida no cenário.
   playerAddBlock()
-  playerAddBlock()
+  -- playerAddBlock()
   respawnPlayerFood()
 
 end
@@ -93,8 +93,8 @@ end
 
 function respawnPlayerFood()
 
-  food.pos.x = love.math.random(10, screenWidth - 10)
-  food.pos.y = love.math.random(10, screenHeight - 10)
+  food.pos.x = love.math.random(10, screenWidth - 20)
+  food.pos.y = love.math.random(10, screenHeight - 20)
   food.isAlive = true
 
 end
@@ -104,7 +104,7 @@ function gameOver()
 end
 
 function love.keypressed (key)
-    if key == 'left' then
+    if key == 'left' or key == 'd' then
         player.speed.x = -player_movement_speed
         player.speed.y = player_no_speed
     elseif key == 'right' then
@@ -138,25 +138,18 @@ function playerBodyCollision (player)
 end
 
 function love.update (dt)
+  prevPos = {
+    x = player.pos.x,
+    y = player.pos.y
+  }
+  
   player.pos.x =  player.pos.x + player.speed.x * dt
   player.pos.y =  player.pos.y + player.speed.y * dt
 
   for i,block in ipairs(player.body.blocks) do
 
-    --[[if (i <= 1) then
-      if (block.pos.x < player.pos.x) then
-        block.speed.y = player.speed.x
-        block.speed.x = player.speed.y
-      end
-    else
-      if (block.pos.x < player.body.blocks[i-1].pos.x) then
-        block.speed.y = player.body.blocks[i-1].speed.x
-        block.speed.x = player.body.blocks[i-1].speed.y
-      end
-    end--]]
-
-    block.pos.x = block.pos.x + block.speed.x * dt
-    block.pos.y = block.pos.y + block.speed.y * dt
+    block.pos.x = prevPos.x + player.speed.x * dt
+    block.pos.y = prevPos.y + player.speed.y * dt
   end
 
   playerFoodCollision(player,food)
