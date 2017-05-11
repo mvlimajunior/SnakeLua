@@ -3,7 +3,7 @@ screenHeight = love.graphics.getHeight()
 
 default_block_size = 20
 
-player_movement_speed = 50
+player_movement_speed = 100
 player_body_gap = 1
 
 function love.load ()
@@ -26,10 +26,14 @@ function love.load ()
   -- Iniciliza o Jogador.
   player = {
     pos = {
-      x = screenWidth/2,
-      y = screenHeight/2,
-      last_x = nil,
-      last_y = nil,
+      current = {
+        x = screenWidth/2,
+        y = screenHeight/2
+      },
+      previous = {
+        x = nil,
+        y = nil
+      }
     },
     direction = {
       x = 0,
@@ -53,40 +57,42 @@ function love.load ()
   playerAddBlock()
   respawnPlayerFood()
 
+  accumulator = { current = 0; limit= 0.25; }
+
 end
 
 -- Aumenta o comprimento do Jogador.
 function playerAddBlock(n)
 
-  if (n == nil or n > 0) then
+  if (n == nil) then
+    n = 1
+  end
 
+  -- Estrutura do Novo Bloco.
+  new_block = {
+    pos = {
+      current = {
+        x = nil,
+        y = nil
+      },
+      previous = {
+        x = nil,
+        y = nil
+      }
+    },
+    direction = {
+      x = player.direction.x,
+      y = player.direction.y
+    }
+  }
+
+  for i=1,n do
     if (player.body.size == 0) then
-      new_block = {
-        pos = {
-          x = player.pos.x + ( default_block_size * player.direction.x ) + player_body_gap,
-          y = player.pos.y + ( default_block_size * player.direction.y ) + player_body_gap,
-          last_x = nil,
-          last_y = nil
-        },
-        direction = {
-          x = player.direction.x,
-          y = player.direction.y
-        }
-      }
+      new_block.pos.current.x = player.pos.current.x + ( default_block_size * player.direction.x ) + player_body_gap
+      new_block.pos.current.y = player.pos.current.y + ( default_block_size * player.direction.y ) + player_body_gap
     else
-      new_block = {
-        pos = {
-          x = player.pos.x + ( ( default_block_size * player.direction.x) * (player.body.size + 1) ) + player_body_gap,
-          y = player.pos.y + ( ( default_block_size * player.direction.y) * (player.body.size + 1) ) + player_body_gap,
-          last_x = nil,
-          last_y = nil
-        },
-        direction = {
-          x = player.direction.x,
-          y = player.direction.y
-        }
-      }
-
+      new_block.pos.current.x = player.pos.current.x + ( ( default_block_size * player.direction.x) * (player.body.size + 1) ) + player_body_gap
+      new_block.pos.current.y = player.pos.current.y + ( ( default_block_size * player.direction.y) * (player.body.size + 1) ) + player_body_gap
     end
 
     table.insert(player.body.blocks,1,new_block)
@@ -96,10 +102,6 @@ function playerAddBlock(n)
     print("Criei Corpo no Player! : ")
     print(player.body.size)
 
-  end
-
-  if (n ~= nil and n > 0) then
-    playerAddBlock(n-1)
   end
 
 end
@@ -155,7 +157,7 @@ end
 
 -- Jogador colidindo com a comida.
 function playerFoodCollision (player, food)
-  if ( player.pos.x + default_block_size >= food.pos.x ) and ( player.pos.x <= food.pos.x + default_block_size) and ( player.pos.y + default_block_size >= food.pos.y) and ( player.pos.y <= food.pos.y + default_block_size ) then
+  if ( player.pos.current.x + default_block_size >= food.pos.x ) and ( player.pos.current.x <= food.pos.x + default_block_size) and ( player.pos.current.y + default_block_size >= food.pos.y) and ( player.pos.current.y <= food.pos.y + default_block_size ) then
     playerAddBlock()
     respawnPlayerFood()
   end
@@ -168,23 +170,30 @@ end
 
 function love.update (dt)
 
-  player.pos.last_x = player.pos.x
-  player.pos.last_y = player.pos.y
+  accumulator.current = accumulator.current +dt;
 
-  player.pos.x =  player.pos.x + player.direction.x * player_movement_speed * dt
-  player.pos.y =  player.pos.y + player.direction.y * player_movement_speed * dt
+  player.pos.previous.x = player.pos.current.x
+  player.pos.previous.y = player.pos.current.y
 
-  for i,block in ipairs(player.body.blocks) do
+  player.pos.current.x =  player.pos.current.x + player.direction.x * player_movement_speed * dt
+  player.pos.current.y =  player.pos.current.y + player.direction.y * player_movement_speed * dt
 
-    block.pos.last_x = block.pos.x
-    block.pos.last_y = block.pos.y
+  if (accumulator.current >= accumulator.limit) then
 
-    if (i <= 1) then
-      block.pos.x = player.pos.last_x - default_block_size * player.direction.x
-      block.pos.y = player.pos.last_y - default_block_size * player.direction.y
-    else
-      block.pos.x = player.body.blocks[i-1].pos.last_x - default_block_size * player.direction.x
-      block.pos.y = player.body.blocks[i-1].pos.last_y - default_block_size * player.direction.y
+    accumulator.current = accumulator.current-accumulator.limit;
+
+    for i,block in ipairs(player.body.blocks) do
+
+      block.pos.previous.x = block.pos.current.x
+      block.pos.previous.y = block.pos.current.y
+
+      if (i <= 1) then
+        block.pos.current.x = player.pos.previous.x - ( default_block_size * 2 ) * player.direction.x * dt
+        block.pos.current.y = player.pos.previous.y - ( default_block_size * 2 ) * player.direction.y * dt
+      else
+        block.pos.current.x = player.body.blocks[i-1].pos.previous.x - ( default_block_size * 2 ) * player.direction.x * dt
+        block.pos.current.y = player.body.blocks[i-1].pos.previous.y - ( default_block_size *2 ) * player.direction.y * dt
+      end
     end
   end
 
@@ -197,12 +206,12 @@ function drawPlayer()
   love.graphics.setColor(255, 0, 0, 180)
 
   -- Desenho do Jogador. ( Cabeça )
-  love.graphics.rectangle( "fill", player.pos.x, player.pos.y, default_block_size, default_block_size )
+  love.graphics.rectangle( "fill", player.pos.current.x, player.pos.current.y, default_block_size, default_block_size )
 
   love.graphics.setColor(0, 0, 0, 255)
   -- Desenho do Corpo.
  for i,block in ipairs(player.body.blocks) do
-   love.graphics.rectangle( "fill", block.pos.x, block.pos.y, default_block_size, default_block_size )
+   love.graphics.rectangle( "fill", block.pos.current.x, block.pos.current.y, default_block_size, default_block_size )
  end
 
 end
