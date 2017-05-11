@@ -6,6 +6,8 @@ default_block_size = 20
 player_movement_speed = 100
 player_body_gap = 1
 
+high_score = 0
+
 function love.load ()
 
   -- Inicializa a Cor do Cenário
@@ -16,11 +18,11 @@ function love.load ()
 
   -- Define os limites do cenário na tela. ( Xi , Yi )
   scenarioLimits = {
-    10,10,
+    10,20,
     10,screenHeight-10,
     screenWidth-10,screenHeight-10,
-    screenWidth-10,10,
-    10,10
+    screenWidth-10,20,
+    10,20
   }
 
   -- Iniciliza o Jogador.
@@ -113,47 +115,69 @@ function respawnPlayerFood()
   food.pos.y = love.math.random(10, screenHeight - 20)
   food.isAlive = true
 
+  print(food.pos.y)
+  print(food.pos.x)
+
 end
 
 function gameOver()
- return true
+  love.load()
+  return true
+end
+
+function updatescore()
+  if(player.body.size > high_score) then
+    high_score = player.body.size
+  end
 end
 
 function love.keypressed (key)
 
 
-    if key == 'left' or key == 'd' then
-      if player.direction.x ~=1 and player.direction.y ~=0 then
-        player.direction.x = -1
-        player.direction.y = 0
-      end
-    elseif key == 'right' then
-      if player.direction.x ~=-1 and player.direction.y ~=0 then
-        player.direction.x = 1
-        player.direction.y = 0
-      end
-    elseif key == 'up' then
-      if player.direction.x ~= 0 and player.direction.y ~=1 then
-          player.direction.x = 0
-          player.direction.y = -1
-        end
-    elseif key == 'down' then
-        if player.direction.x ~= 0 and player.direction.y ~=-1 then
-          player.direction.y = 1
-          player.direction.x = 0
-        end
-    elseif key == 'f' then
-        playerAddBlock()
-    elseif key == '2' then
-        player_movement_speed = player_movement_speed + 50
-      elseif key == '1' then
-          player_movement_speed = player_movement_speed - 50
+  if key == 'left' or key == 'd' then
+    if player.direction.x ~=1 and player.direction.y ~=0 then
+      player.direction.x = -1
+      player.direction.y = 0
     end
+  elseif key == 'right' then
+    if player.direction.x ~=-1 and player.direction.y ~=0 then
+      player.direction.x = 1
+      player.direction.y = 0
+    end
+  elseif key == 'up' then
+    if player.direction.x ~= 0 and player.direction.y ~=1 then
+      player.direction.x = 0
+      player.direction.y = -1
+    end
+  elseif key == 'down' then
+    if player.direction.x ~= 0 and player.direction.y ~=-1 then
+      player.direction.y = 1
+      player.direction.x = 0
+    end
+  elseif key == 'f' then
+    playerAddBlock()
+  elseif key == '2' then
+    player_movement_speed = player_movement_speed + 50
+  elseif key == '1' then
+    player_movement_speed = player_movement_speed - 50
+  end
 end
 
 -- Jogador colidindo com as paredes.
-function playerWallCollision (player, wall)
+function playerWallCollision ()
 
+  --[[print(screenWidth-10)
+  print(screenHeight-10)
+  print("x")
+  print(player.pos.current.x)
+
+  print("y")
+  print(player.pos.current.y)]]
+  if player.pos.current.x <= 10 or player.pos.current.x >= screenWidth-10 - default_block_size  or player.pos.current.y <= 20  or player.pos.current.y >= screenHeight-10 -default_block_size then
+    print("x" .. tostring(player.pos.current.x))
+    print("y" .. tostring(player.pos.current.y))
+    gameOver()
+  end
 end
 
 -- Jogador colidindo com a comida.
@@ -205,7 +229,10 @@ function love.update (dt)
     end
   end
 
+
+  playerWallCollision()
   playerFoodCollision(player,food)
+  updatescore()
 
 end
 
@@ -217,6 +244,8 @@ function drawPlayer()
   love.graphics.rectangle( "fill", player.pos.current.x, player.pos.current.y, default_block_size, default_block_size )
 
   love.graphics.setColor(0, 0, 0, 255)
+
+
   -- Desenho do Corpo.
  for i,block in ipairs(player.body.blocks) do
    if (block.isAlive) then
@@ -224,6 +253,13 @@ function drawPlayer()
    end
  end
 
+  --Desenho do status
+  love.graphics.print("Body Size " .. tostring(player.body.size) , 5, 5)
+  love.graphics.print("Speed " .. tostring(player_movement_speed) , 150, 5)
+  love.graphics.print("High Score " .. tostring(high_score) , screenWidth-150, 5)
+
+  love.graphics.print("x " .. tostring(player.pos.current.x) , screenWidth-150, 20)
+  love.graphics.print("y " .. tostring(player.pos.current.y) , screenWidth-150, 30)
 end
 
 function love.draw()
