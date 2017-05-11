@@ -117,18 +117,28 @@ function gameOver()
 end
 
 function love.keypressed (key)
+
+
     if key == 'left' or key == 'd' then
+      if player.direction.x ~=1 and player.direction.y ~=0 then
         player.direction.x = -1
         player.direction.y = 0
+      end
     elseif key == 'right' then
+      if player.direction.x ~=-1 and player.direction.y ~=0 then
         player.direction.x = 1
         player.direction.y = 0
+      end
     elseif key == 'up' then
-        player.direction.x = 0
-        player.direction.y = -1
+      if player.direction.x ~= 0 and player.direction.y ~=1 then
+          player.direction.x = 0
+          player.direction.y = -1
+        end
     elseif key == 'down' then
-        player.direction.y = 1
-        player.direction.x = 0
+        if player.direction.x ~= 0 and player.direction.y ~=-1 then
+          player.direction.y = 1
+          player.direction.x = 0
+        end
     elseif key == 'f' then
         playerAddBlock()
     elseif key == '2' then
