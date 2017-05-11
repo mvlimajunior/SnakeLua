@@ -3,8 +3,7 @@ screenHeight = love.graphics.getHeight()
 
 default_block_size = 20
 
-player_movement_speed = 100
-player_no_speed = 0
+player_movement_speed = 50
 player_body_gap = 1
 
 function love.load ()
@@ -29,10 +28,12 @@ function love.load ()
     pos = {
       x = screenWidth/2,
       y = screenHeight/2,
+      last_x = nil,
+      last_y = nil,
     },
-    speed = {
-      x = player_no_speed,
-      y = -player_movement_speed,
+    direction = {
+      x = 0,
+      y = -1,
     },
     body = {
       size = 0,
@@ -62,23 +63,27 @@ function playerAddBlock(n)
     if (player.body.size == 0) then
       new_block = {
         pos = {
-          x = player.pos.x,
-          y = player.pos.y + default_block_size + player_body_gap
+          x = player.pos.x + ( default_block_size * player.direction.x ) + player_body_gap,
+          y = player.pos.y + ( default_block_size * player.direction.y ) + player_body_gap,
+          last_x = nil,
+          last_y = nil
         },
-        speed = {
-          x = player.speed.x,
-          y = player.speed.y,
+        direction = {
+          x = player.direction.x,
+          y = player.direction.y
         }
       }
     else
       new_block = {
         pos = {
-          x = player.pos.x,
-          y = player.pos.y + ( ( default_block_size + player_body_gap ) * (player.body.size + 1) )
+          x = player.pos.x + ( ( default_block_size * player.direction.x) * (player.body.size + 1) ) + player_body_gap,
+          y = player.pos.y + ( ( default_block_size * player.direction.y) * (player.body.size + 1) ) + player_body_gap,
+          last_x = nil,
+          last_y = nil
         },
-        speed = {
-          x = player.speed.x,
-          y = player.speed.y,
+        direction = {
+          x = player.direction.x,
+          y = player.direction.y
         }
       }
 
@@ -113,17 +118,23 @@ end
 
 function love.keypressed (key)
     if key == 'left' or key == 'd' then
-        player.speed.x = -player_movement_speed
-        player.speed.y = player_no_speed
+        player.direction.x = -1
+        player.direction.y = 0
     elseif key == 'right' then
-        player.speed.x = player_movement_speed
-        player.speed.y = player_no_speed
+        player.direction.x = 1
+        player.direction.y = 0
     elseif key == 'up' then
-        player.speed.x = player_no_speed
-        player.speed.y = -player_movement_speed
+        player.direction.x = 0
+        player.direction.y = -1
     elseif key == 'down' then
-        player.speed.y = player_movement_speed
-        player.speed.x = player_no_speed
+        player.direction.y = 1
+        player.direction.x = 0
+    elseif key == 'f' then
+        playerAddBlock()
+    elseif key == '2' then
+        player_movement_speed = player_movement_speed + 50
+      elseif key == '1' then
+          player_movement_speed = player_movement_speed - 50
     end
 end
 
@@ -146,17 +157,25 @@ function playerBodyCollision (player)
 end
 
 function love.update (dt)
-  prevPos = {
-    x = player.pos.y - default_block_size,
-    y = player.pos.x - default_block_size
-  }
 
-  player.pos.x =  player.pos.x + player.speed.x * dt
-  player.pos.y =  player.pos.y + player.speed.y * dt
+  player.pos.last_x = player.pos.x
+  player.pos.last_y = player.pos.y
+
+  player.pos.x =  player.pos.x + player.direction.x * player_movement_speed * dt
+  player.pos.y =  player.pos.y + player.direction.y * player_movement_speed * dt
 
   for i,block in ipairs(player.body.blocks) do
 
+    block.pos.last_x = block.pos.x
+    block.pos.last_y = block.pos.y
 
+    if (i <= 1) then
+      block.pos.x = player.pos.last_x - default_block_size * player.direction.x
+      block.pos.y = player.pos.last_y - default_block_size * player.direction.y
+    else
+      block.pos.x = player.body.blocks[i-1].pos.last_x - default_block_size * player.direction.x
+      block.pos.y = player.body.blocks[i-1].pos.last_y - default_block_size * player.direction.y
+    end
   end
 
   playerFoodCollision(player,food)
@@ -191,5 +210,4 @@ function love.draw()
     love.graphics.setColor(0,0,255)
     love.graphics.rectangle( "fill", food.pos.x, food.pos.y, default_block_size, default_block_size )
   end
-
 end
