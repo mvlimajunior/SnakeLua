@@ -3,12 +3,19 @@ screenHeight = love.graphics.getHeight()
 
 default_block_size = 20
 
-player_movement_speed = 100
+
 player_body_gap = 1
 
 high_score = 0
 
+gameover = false
+
 function love.load ()
+
+  player_movement_speed = 100
+
+  sound_eating =  love.audio.newSource("eating.wav", "static")
+  sound_gameover = love.audio.newSource("gameover.wav", "static")
 
   -- Inicializa a Cor do Cenário
   love.graphics.setBackgroundColor(255,255,255)
@@ -111,8 +118,8 @@ end
 
 function respawnPlayerFood()
 
-  food.pos.x = love.math.random(10, screenWidth - 20)
-  food.pos.y = love.math.random(10, screenHeight - 20)
+  food.pos.x = love.math.random(20, screenWidth - 30)
+  food.pos.y = love.math.random(20, screenHeight - 30)
   food.isAlive = true
 
   print(food.pos.y)
@@ -121,8 +128,14 @@ function respawnPlayerFood()
 end
 
 function gameOver()
-  love.load()
-  return true
+
+  if not gameover then
+    love.audio.play( sound_gameover )
+    gameover = true
+    player_movement_speed = 0
+  end
+
+
 end
 
 function updatescore()
@@ -160,6 +173,9 @@ function love.keypressed (key)
     player_movement_speed = player_movement_speed + 50
   elseif key == '1' then
     player_movement_speed = player_movement_speed - 50
+  elseif key == 'r' and gameover then
+    gameover = false
+    love.load()
   end
 end
 
@@ -185,11 +201,15 @@ function playerFoodCollision (player, food)
   if ( player.pos.current.x + default_block_size >= food.pos.x ) and ( player.pos.current.x <= food.pos.x + default_block_size) and ( player.pos.current.y + default_block_size >= food.pos.y) and ( player.pos.current.y <= food.pos.y + default_block_size ) then
     playerAddBlock()
     respawnPlayerFood()
+    love.audio.play( sound_eating )
   end
 end
 
 -- Jogador colidindo com ele mesmo.
 function playerBodyCollision (player)
+
+
+  print("logging")
   return true
 end
 
@@ -247,11 +267,11 @@ function drawPlayer()
 
 
   -- Desenho do Corpo.
- for i,block in ipairs(player.body.blocks) do
-   if (block.isAlive) then
-     love.graphics.rectangle( "fill", block.pos.current.x, block.pos.current.y, default_block_size, default_block_size )
-   end
- end
+  for i,block in ipairs(player.body.blocks) do
+    if (block.isAlive) then
+      love.graphics.rectangle( "fill", block.pos.current.x, block.pos.current.y, default_block_size, default_block_size )
+    end
+  end
 
   --Desenho do status
   love.graphics.print("Body Size " .. tostring(player.body.size) , 5, 5)
@@ -274,5 +294,9 @@ function love.draw()
   if (food.isAlive) then
     love.graphics.setColor(0,0,255)
     love.graphics.rectangle( "fill", food.pos.x, food.pos.y, default_block_size, default_block_size )
+  end
+
+  if(gameover) then
+    love.graphics.print("Press R to restart game",screenWidth/2 - 30,screenHeight/2)
   end
 end
