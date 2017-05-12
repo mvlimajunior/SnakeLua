@@ -45,8 +45,14 @@ function love.load ()
       }
     },
     direction = {
-      x = 0,
-      y = -1,
+      current = {
+        x = 0,
+        y = -1
+      },
+      previous = {
+        x = 0,
+        y = -1
+      }
     },
     body = {
       size = 0,
@@ -66,7 +72,7 @@ function love.load ()
   playerAddBlock()
   respawnPlayerFood()
 
-  accumulator = { current = 0; limit= 0.27; }
+  accumulator = { current = 0; limit = 0.25; }
 
 end
 
@@ -90,19 +96,25 @@ function playerAddBlock(n)
       }
     },
     direction = {
-      x = player.direction.x,
-      y = player.direction.y
+      current = {
+        x = player.direction.current.x,
+        y = player.direction.current.y
+      },
+      previous = {
+        x = player.direction.current.x,
+        y = player.direction.current.y
+      }
     },
     isAlive = false
   }
 
   for i=1,n do
     if (player.body.size >= 0) then
-      new_block.pos.current.x = player.pos.current.x + ( default_block_size * player.direction.x ) + player_body_gap
-      new_block.pos.current.y = player.pos.current.y + ( default_block_size * player.direction.y ) + player_body_gap
+      new_block.pos.current.x = player.pos.current.x + ( default_block_size * player.direction.current.x ) + player_body_gap
+      new_block.pos.current.y = player.pos.current.y + ( default_block_size * player.direction.current.y ) + player_body_gap
     else
-      new_block.pos.current.x = player.pos.current.x + ( ( default_block_size * player.direction.x) * (player.body.size + 1) ) + player_body_gap
-      new_block.pos.current.y = player.pos.current.y + ( ( default_block_size * player.direction.y) * (player.body.size + 1) ) + player_body_gap
+      new_block.pos.current.x = player.pos.current.x + ( ( default_block_size * player.direction.current.x) * (player.body.size + 1) ) + player_body_gap
+      new_block.pos.current.y = player.pos.current.y + ( ( default_block_size * player.direction.current.y) * (player.body.size + 1) ) + player_body_gap
     end
 
     table.insert(player.body.blocks,new_block)
@@ -146,26 +158,28 @@ end
 
 function love.keypressed (key)
 
+  player.direction.previous.x = player.direction.current.x
+  player.direction.previous.y = player.direction.current.y
 
   if key == 'left' or key == 'd' then
-    if player.direction.x ~=1 and player.direction.y ~=0 then
-      player.direction.x = -1
-      player.direction.y = 0
+    if player.direction.current.x ~=1 and player.direction.current.y ~=0 then
+      player.direction.current.x = -1
+      player.direction.current.y = 0
     end
   elseif key == 'right' then
-    if player.direction.x ~=-1 and player.direction.y ~=0 then
-      player.direction.x = 1
-      player.direction.y = 0
+    if player.direction.current.x ~=-1 and player.direction.current.y ~=0 then
+      player.direction.current.x = 1
+      player.direction.current.y = 0
     end
   elseif key == 'up' then
-    if player.direction.x ~= 0 and player.direction.y ~=1 then
-      player.direction.x = 0
-      player.direction.y = -1
+    if player.direction.current.x ~= 0 and player.direction.current.y ~=1 then
+      player.direction.current.x = 0
+      player.direction.current.y = -1
     end
   elseif key == 'down' then
-    if player.direction.x ~= 0 and player.direction.y ~=-1 then
-      player.direction.y = 1
-      player.direction.x = 0
+    if player.direction.current.x ~= 0 and player.direction.current.y ~=-1 then
+      player.direction.current.y = 1
+      player.direction.current.x = 0
     end
   elseif key == 'f' then
     playerAddBlock()
@@ -208,8 +222,6 @@ end
 -- Jogador colidindo com ele mesmo.
 function playerBodyCollision (player)
 
-
-  print("logging")
   return true
 end
 
@@ -217,12 +229,12 @@ function love.update (dt)
 
   accumulator.current = accumulator.current + dt
 
-  player.pos.previous.x = player.pos.current.x - ( default_block_size * player.direction.x )
-  player.pos.previous.y = player.pos.current.y - ( default_block_size * player.direction.y )
+  player.pos.previous.x = player.pos.current.x - ( default_block_size * player.direction.current.x )
+  player.pos.previous.y = player.pos.current.y - ( default_block_size * player.direction.current.y )
 
-  player.pos.current.x = player.pos.current.x + ( player.direction.x * player_movement_speed * dt )
+  player.pos.current.x = player.pos.current.x + ( player.direction.current.x * player_movement_speed * dt )
 
-  player.pos.current.y = player.pos.current.y + ( player.direction.y * player_movement_speed * dt )
+  player.pos.current.y = player.pos.current.y + ( player.direction.current.y * player_movement_speed * dt )
 
   -- Checa colisão do Jogador.
   playerBodyCollision(player)
@@ -236,12 +248,15 @@ function love.update (dt)
       block.pos.previous.x = block.pos.current.x
       block.pos.previous.y = block.pos.current.y
 
+      block.direction.previous.x = block.direction.current.x
+      block.direction.previous.y = block.direction.current.y
+
       if (i <= 1) then
-        block.pos.current.x = player.pos.previous.x - player.direction.x * dt
-        block.pos.current.y = player.pos.previous.y - player.direction.y * dt
+        block.pos.current.x = player.pos.previous.x + ( player.direction.previous.x * player_movement_speed * dt )
+        block.pos.current.y = player.pos.previous.y + ( player.direction.previous.y * player_movement_speed * dt )
       else
-        block.pos.current.x = player.body.blocks[i-1].pos.previous.x - player.direction.x * dt
-        block.pos.current.y = player.body.blocks[i-1].pos.previous.y - player.direction.y * dt
+        block.pos.current.x = player.body.blocks[i-1].pos.previous.x + ( player.body.blocks[i-1].direction.previous.x * player_movement_speed * dt )
+        block.pos.current.y = player.body.blocks[i-1].pos.previous.y + ( player.body.blocks[i-1].direction.previous.y * player_movement_speed * dt )
       end
 
       block.isAlive = true
