@@ -287,6 +287,6 @@ function love.draw()
   end
 
   if(gameover) then
-    love.graphics.print("Press R to restart game",screenWidth/2 - 30,screenHeight/2)
+    love.graphics.print("Press R to restart game", screenWidth/2 - 70, screenHeight/2)
   end
 end
