@@ -89,6 +89,40 @@ function love.load ()
 
 end
 
+function love.keypressed (key)
+
+  if key == 'left' or key == 'd' then
+    if player.direction.x ~=1 and player.direction.y ~=0 then
+      player.direction.x = -1
+      player.direction.y = 0
+    end
+  elseif key == 'right' then
+    if player.direction.x ~=-1 and player.direction.y ~=0 then
+      player.direction.x = 1
+      player.direction.y = 0
+    end
+  elseif key == 'up' then
+    if player.direction.x ~= 0 and player.direction.y ~=1 then
+      player.direction.x = 0
+      player.direction.y = -1
+    end
+  elseif key == 'down' then
+    if player.direction.x ~= 0 and player.direction.y ~=-1 then
+      player.direction.y = 1
+      player.direction.x = 0
+    end
+  elseif key == 'f' then
+    playerAddBlock()
+  elseif key == '2' then
+    player.body.speed = player.body.speed + 50
+  elseif key == '1' then
+    player.body.speed = player.body.speed - 50
+  elseif key == 'r' and gameover then
+    gameover = false
+    love.load()
+  end
+end
+
 -- Adiciona um bloco ao Jogador.
 function playerAddBlock(x,y)
 
@@ -135,40 +169,6 @@ end
 function updatescore()
   if(player.body.size > high_score) then
     high_score = player.body.size
-  end
-end
-
-function love.keypressed (key)
-
-  if key == 'left' or key == 'd' then
-    if player.direction.x ~=1 and player.direction.y ~=0 then
-      player.direction.x = -1
-      player.direction.y = 0
-    end
-  elseif key == 'right' then
-    if player.direction.x ~=-1 and player.direction.y ~=0 then
-      player.direction.x = 1
-      player.direction.y = 0
-    end
-  elseif key == 'up' then
-    if player.direction.x ~= 0 and player.direction.y ~=1 then
-      player.direction.x = 0
-      player.direction.y = -1
-    end
-  elseif key == 'down' then
-    if player.direction.x ~= 0 and player.direction.y ~=-1 then
-      player.direction.y = 1
-      player.direction.x = 0
-    end
-  elseif key == 'f' then
-    playerAddBlock()
-  elseif key == '2' then
-    player.body.speed = player.body.speed + 50
-  elseif key == '1' then
-    player.body.speed = player.body.speed - 50
-  elseif key == 'r' and gameover then
-    gameover = false
-    love.load()
   end
 end
 
