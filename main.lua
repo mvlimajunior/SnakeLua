@@ -105,6 +105,10 @@ function playerAddBlock(n)
         y = player.direction.current.y
       }
     },
+    tickTime = {
+      current = 0,
+      limit = 0.25
+    },
     isAlive = false
   }
 
@@ -239,11 +243,13 @@ function love.update (dt)
   -- Checa colisão do Jogador.
   playerBodyCollision(player)
 
-  if (accumulator.current >= accumulator.limit) then
+  if (accumulator.current >= accumulator.limit or true) then
 
     accumulator.current = accumulator.current-accumulator.limit;
 
     for i,block in ipairs(player.body.blocks) do
+
+      block.tickTime.current = block.tickTime.current + dt
 
       block.pos.previous.x = block.pos.current.x
       block.pos.previous.y = block.pos.current.y
@@ -251,15 +257,21 @@ function love.update (dt)
       block.direction.previous.x = block.direction.current.x
       block.direction.previous.y = block.direction.current.y
 
-      if (i <= 1) then
-        block.pos.current.x = player.pos.previous.x + ( player.direction.previous.x * player_movement_speed * dt )
-        block.pos.current.y = player.pos.previous.y + ( player.direction.previous.y * player_movement_speed * dt )
-      else
-        block.pos.current.x = player.body.blocks[i-1].pos.previous.x + ( player.body.blocks[i-1].direction.previous.x * player_movement_speed * dt )
-        block.pos.current.y = player.body.blocks[i-1].pos.previous.y + ( player.body.blocks[i-1].direction.previous.y * player_movement_speed * dt )
-      end
+      if (block.tickTime.current >= block.tickTime.limit) then
 
-      block.isAlive = true
+        block.tickTime.current = block.tickTime.current - block.tickTime.limit
+
+        if (i <= 1) then
+          block.pos.current.x = player.pos.previous.x + ( player.direction.previous.x * player_movement_speed * dt )
+          block.pos.current.y = player.pos.previous.y + ( player.direction.previous.y * player_movement_speed * dt )
+        else
+          block.pos.current.x = player.body.blocks[i-1].pos.previous.x + ( player.body.blocks[i-1].direction.previous.x * player_movement_speed * dt )
+          block.pos.current.y = player.body.blocks[i-1].pos.previous.y + ( player.body.blocks[i-1].direction.previous.y * player_movement_speed * dt )
+        end
+
+        block.isAlive = true
+
+      end
 
     end
   end
