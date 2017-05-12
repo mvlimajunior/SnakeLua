@@ -3,16 +3,11 @@ screenHeight = love.graphics.getHeight()
 
 default_block_size = 20
 
-
-player_body_gap = 1
-
 high_score = 0
 
 gameover = false
 
 function love.load ()
-
-  player_movement_speed = 100
 
   sound_eating =  love.audio.newSource("eating.wav", "static")
   sound_gameover = love.audio.newSource("gameover.wav", "static")
@@ -45,11 +40,13 @@ function love.load ()
       }
     },
     direction = {
-      x = 0,
-      y = -1,
+      x = 1,
+      y = 0,
     },
     body = {
       size = 0,
+      speed = 1400,
+      gap = 1,
       blocks = {}
     }
   }
@@ -62,57 +59,44 @@ function love.load ()
     isAlive = false
   }
 
+  print("Criei Corpo do Player! : " .. tostring(player.body.size) .. "    x: " .. tostring(player.pos.current.x) .. "    y: " .. tostring(player.pos.current.y))
+
   -- Inicializa dois blocos ao Jogador e Inicializa comida no cenário.
-  playerAddBlock()
+  for i = 1,4 do
+
+    initialPosX = player.pos.current.x - ( ( default_block_size + player.body.gap ) * ( player.body.size + 1 ) ) * player.direction.x
+
+    new_block = playerAddBlockBeta(initialPosX,player.pos.current.y)
+
+    table.insert(player.body.blocks, new_block)
+  end
+
+  -- playerAddBlock()
   respawnPlayerFood()
 
-  accumulator = { current = 0; limit= 0.27; }
+  accumulator = {
+    current = 0,
+    limit= 0.1
+  }
 
 end
 
--- Aumenta o comprimento do Jogador.
-function playerAddBlock(n)
-
-  if (n == nil) then
-    n = 1
-  end
+function playerAddBlockBeta(x,y)
 
   -- Estrutura do Novo Bloco.
   new_block = {
     pos = {
-      current = {
-        x = nil,
-        y = nil
-      },
-      previous = {
-        x = nil,
-        y = nil
-      }
+      x = x,
+      y = y
     },
-    direction = {
-      x = player.direction.x,
-      y = player.direction.y
-    },
-    isAlive = false
+    isAlive = true
   }
 
-  for i=1,n do
-    if (player.body.size >= 0) then
-      new_block.pos.current.x = player.pos.current.x + ( default_block_size * player.direction.x ) + player_body_gap
-      new_block.pos.current.y = player.pos.current.y + ( default_block_size * player.direction.y ) + player_body_gap
-    else
-      new_block.pos.current.x = player.pos.current.x + ( ( default_block_size * player.direction.x) * (player.body.size + 1) ) + player_body_gap
-      new_block.pos.current.y = player.pos.current.y + ( ( default_block_size * player.direction.y) * (player.body.size + 1) ) + player_body_gap
-    end
+  player.body.size = player.body.size + 1
 
-    table.insert(player.body.blocks,new_block)
+  print("Criei Corpo no Player! : " .. tostring(player.body.size) .. "    x: " .. tostring(new_block.pos.x) .. "    y: " .. tostring(new_block.pos.y))
 
-    player.body.size = player.body.size + 1
-
-    print("Criei Corpo no Player! : ")
-    print(player.body.size)
-
-  end
+  return new_block
 
 end
 
@@ -120,10 +104,8 @@ function respawnPlayerFood()
 
   food.pos.x = love.math.random(20, screenWidth - 30)
   food.pos.y = love.math.random(20, screenHeight - 30)
-  food.isAlive = true
 
-  print(food.pos.y)
-  print(food.pos.x)
+  food.isAlive = true
 
 end
 
@@ -145,7 +127,6 @@ function updatescore()
 end
 
 function love.keypressed (key)
-
 
   if key == 'left' or key == 'd' then
     if player.direction.x ~=1 and player.direction.y ~=0 then
@@ -170,11 +151,12 @@ function love.keypressed (key)
   elseif key == 'f' then
     playerAddBlock()
   elseif key == '2' then
-    player_movement_speed = player_movement_speed + 50
+    player.body.speed = player.body.speed + 50
   elseif key == '1' then
-    player_movement_speed = player_movement_speed - 50
+    player.body.speed = player.body.speed - 50
   elseif key == 'r' and gameover then
     gameover = false
+    player.body.blocks = {}
     love.load()
   end
 end
@@ -199,61 +181,55 @@ end
 -- Jogador colidindo com a comida.
 function playerFoodCollision (player, food)
   if ( player.pos.current.x + default_block_size >= food.pos.x ) and ( player.pos.current.x <= food.pos.x + default_block_size) and ( player.pos.current.y + default_block_size >= food.pos.y) and ( player.pos.current.y <= food.pos.y + default_block_size ) then
-    playerAddBlock()
+
     respawnPlayerFood()
     love.audio.play( sound_eating )
+
+    return true
+
+  else
+    return false
   end
 end
 
 -- Jogador colidindo com ele mesmo.
 function playerBodyCollision (player)
-
-
-  print("logging")
   return true
 end
 
 function love.update (dt)
 
+
   accumulator.current = accumulator.current + dt
-
-  player.pos.previous.x = player.pos.current.x - ( default_block_size * player.direction.x )
-  player.pos.previous.y = player.pos.current.y - ( default_block_size * player.direction.y )
-
-  player.pos.current.x = player.pos.current.x + ( player.direction.x * player_movement_speed * dt )
-
-  player.pos.current.y = player.pos.current.y + ( player.direction.y * player_movement_speed * dt )
-
-  -- Checa colisão do Jogador.
-  playerBodyCollision(player)
 
   if (accumulator.current >= accumulator.limit) then
 
     accumulator.current = accumulator.current-accumulator.limit;
 
-    for i,block in ipairs(player.body.blocks) do
+    player.pos.previous.x = player.pos.current.x
+    player.pos.previous.y = player.pos.current.y
 
-      block.pos.previous.x = block.pos.current.x
-      block.pos.previous.y = block.pos.current.y
+    player.pos.current.x = player.pos.current.x + ( player.direction.x * player.body.speed * dt)
 
-      if (i <= 1) then
-        block.pos.current.x = player.pos.previous.x - player.direction.x * dt
-        block.pos.current.y = player.pos.previous.y - player.direction.y * dt
-      else
-        block.pos.current.x = player.body.blocks[i-1].pos.previous.x - player.direction.x * dt
-        block.pos.current.y = player.body.blocks[i-1].pos.previous.y - player.direction.y * dt
-      end
+    player.pos.current.y = player.pos.current.y + ( player.direction.y * player.body.speed * dt )
 
-      block.isAlive = true
+    if (playerFoodCollision(player,food)) then
 
+      tail = playerAddBlockBeta(player.pos.previous.x , player.pos.previous.y)
+
+    else
+
+      tail = table.remove(player.body.blocks,player.body.size)
+
+      tail.pos.x = player.pos.previous.x
+      tail.pos.y = player.pos.previous.y
     end
+
+    table.insert(player.body.blocks,1,tail)
+
+    playerWallCollision()
+    updatescore()
   end
-
-
-  playerWallCollision()
-  playerFoodCollision(player,food)
-  updatescore()
-
 end
 
 function drawPlayer()
@@ -265,17 +241,16 @@ function drawPlayer()
 
   love.graphics.setColor(0, 0, 0, 255)
 
-
   -- Desenho do Corpo.
   for i,block in ipairs(player.body.blocks) do
     if (block.isAlive) then
-      love.graphics.rectangle( "fill", block.pos.current.x, block.pos.current.y, default_block_size, default_block_size )
+      love.graphics.rectangle( "fill", block.pos.x, block.pos.y, default_block_size, default_block_size )
     end
   end
 
   --Desenho do status
   love.graphics.print("Body Size " .. tostring(player.body.size) , 5, 5)
-  love.graphics.print("Speed " .. tostring(player_movement_speed) , 150, 5)
+  love.graphics.print("Speed " .. tostring(player.body.speed) , 150, 5)
   love.graphics.print("High Score " .. tostring(high_score) , screenWidth-150, 5)
 
   love.graphics.print("x " .. tostring(player.pos.current.x) , screenWidth-150, 20)
