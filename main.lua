@@ -156,30 +156,21 @@ function love.keypressed (key)
     player.body.speed = player.body.speed - 50
   elseif key == 'r' and gameover then
     gameover = false
-    player.body.blocks = {}
     love.load()
   end
 end
 
 -- Jogador colidindo com as paredes.
-function playerWallCollision ()
+function wallCollision ()
 
-  --[[print(screenWidth-10)
-  print(screenHeight-10)
-  print("x")
-  print(player.pos.current.x)
-
-  print("y")
-  print(player.pos.current.y)]]
   if player.pos.current.x <= 10 or player.pos.current.x >= screenWidth-10 - default_block_size  or player.pos.current.y <= 20  or player.pos.current.y >= screenHeight-10 -default_block_size then
-    print("x" .. tostring(player.pos.current.x))
-    print("y" .. tostring(player.pos.current.y))
+    player.body.speed = 0
     gameOver()
   end
 end
 
 -- Jogador colidindo com a comida.
-function playerFoodCollision (player, food)
+function blockCollision (player, food)
   if ( player.pos.current.x + default_block_size >= food.pos.x ) and ( player.pos.current.x <= food.pos.x + default_block_size) and ( player.pos.current.y + default_block_size >= food.pos.y) and ( player.pos.current.y <= food.pos.y + default_block_size ) then
 
     respawnPlayerFood()
@@ -193,7 +184,7 @@ function playerFoodCollision (player, food)
 end
 
 -- Jogador colidindo com ele mesmo.
-function playerBodyCollision (player)
+function playerBodyCollision (player,block)
   return true
 end
 
@@ -202,7 +193,7 @@ function love.update (dt)
 
   accumulator.current = accumulator.current + dt
 
-  if (accumulator.current >= accumulator.limit) then
+  if (accumulator.current >= accumulator.limit and gameover == false) then
 
     accumulator.current = accumulator.current-accumulator.limit;
 
@@ -213,7 +204,14 @@ function love.update (dt)
 
     player.pos.current.y = player.pos.current.y + ( player.direction.y * player.body.speed * dt )
 
-    if (playerFoodCollision(player,food)) then
+    for i,block in ipairs(player.body.blocks) do
+      if (blockCollision(player,block) == true) then
+        player.body.speed = 0
+        gameOver()
+      end
+    end
+
+    if (blockCollision(player,food)) then
 
       tail = playerAddBlockBeta(player.pos.previous.x , player.pos.previous.y)
 
@@ -227,7 +225,7 @@ function love.update (dt)
 
     table.insert(player.body.blocks,1,tail)
 
-    playerWallCollision()
+    wallCollision()
     updatescore()
   end
 end
