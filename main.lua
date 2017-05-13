@@ -182,8 +182,8 @@ function playerWallCollision ()
 end
 
 -- Jogador colidindo com algum outro bloco
-function blockCollision (player, food)
-  return ( player.pos.current.x + default_block_size >= food.pos.x ) and ( player.pos.current.x <= food.pos.x + default_block_size) and ( player.pos.current.y + default_block_size >= food.pos.y) and ( player.pos.current.y <= food.pos.y + default_block_size )
+function blockCollision (player, block)
+  return ( player.pos.current.x + default_block_size >= block.pos.x ) and ( player.pos.current.x <= block.pos.x + default_block_size) and ( player.pos.current.y + default_block_size >= block.pos.y) and ( player.pos.current.y <= block.pos.y + default_block_size )
 end
 
 -- Jogador colidindo com ele mesmo.
