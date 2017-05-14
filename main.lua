@@ -200,10 +200,6 @@ function love.load ()
     return ( player.pos.current.x + default_block_size >= block.pos.x ) and ( player.pos.current.x <= block.pos.x + default_block_size) and ( player.pos.current.y + default_block_size >= block.pos.y) and ( player.pos.current.y <= block.pos.y + default_block_size )
   end
 
-  function playerBodyCollision (player,block)
-    return true
-  end
-
   function love.update (dt)
 
     -- Splash Screen sendo executada
@@ -211,6 +207,7 @@ function love.load ()
       splash:update(dt)
       return true
     end
+
     -- Acumulador do dt.
     accumulator.current = accumulator.current + dt
 
@@ -224,7 +221,7 @@ function love.load ()
       player.pos.previous.y = player.pos.current.y
 
       -- Atualiza a posição atual do jogador.
-      player.pos.current.x = player.pos.current.x + ( player.direction.x * player.body.speed * dt)
+      player.pos.current.x = player.pos.current.x + ( player.direction.x * player.body.speed * dt )
       player.pos.current.y = player.pos.current.y + ( player.direction.y * player.body.speed * dt )
 
       -- Verifica a colisão entre player e parede.
@@ -292,7 +289,7 @@ function love.load ()
 
   function love.draw()
 
-
+    -- Verifica se não é a SplashScreen que tem que desenhar.
     if not loading then
       -- Desenho do Cenário.
       love.graphics.line(scenarioLimits)
