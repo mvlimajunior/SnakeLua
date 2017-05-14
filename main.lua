@@ -197,8 +197,10 @@ function love.load ()
     return ( player.pos.current.x + default_block_size >= block.pos.x ) and ( player.pos.current.x <= block.pos.x + default_block_size) and ( player.pos.current.y + default_block_size >= block.pos.y) and ( player.pos.current.y <= block.pos.y + default_block_size )
   end
 
+  --[[ Jogador colidindo com ele mesmo.
   function playerBodyCollision (player,block)
     return true
+  end]]
 
   function love.update (dt)
     -- Splash Screen sendo executada
