@@ -216,7 +216,7 @@ function splashlib.new(init)
   }
 
   self.textcredit = {
-    obj   = love.graphics.newText(love.graphics.newFont(current_folder .. "/handy-andy.otf", 22), "Created By : \nDeborah Vancellote\nIgor Lessa\nMauricio Vicente"),
+    obj   = love.graphics.newText(love.graphics.newFont(current_folder .. "/handy-andy.otf", 22), "Created By : \nDeborah Vancelotte\nIgor Lessa\nMauricio Vicente"),
     alpha = 0
   }
   self.text.width, self.text.height = self.text.obj:getDimensions()
