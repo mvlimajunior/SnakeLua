@@ -19,13 +19,16 @@ local o_ten_one = require "o-ten-one"
 
 -- Flag de Carregamento
 loading = true
+
 function love.load ()
 
   -- Carregamento da Lib de splashscreen
   splash = o_ten_one({fill="lighten",delay_after = 3})
   splash.onDone = function() loading = false end
 
+  -- Título do Jogo.
   love.window.setTitle("Snake Game" )
+
   -- Sons do Jogo.
   sound_eating =  love.audio.newSource("eating.wav", "static")
   sound_gameover = love.audio.newSource("gameover.wav", "static")
@@ -199,8 +202,10 @@ function love.load ()
 
   function playerBodyCollision (player,block)
     return true
+  end
 
   function love.update (dt)
+
     -- Splash Screen sendo executada
     if loading then
       splash:update(dt)
